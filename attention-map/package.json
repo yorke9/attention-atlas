@@ -1,0 +1,12 @@
+{
+  "name": "attention-atlas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A five-minute browser-local mouse heatmap experiment",
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "test": "node --test tests/engine.test.cjs",
+    "build:offline": "node build-offline.mjs"
+  }
+}

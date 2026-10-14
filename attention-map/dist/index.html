@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0e12">
+  <meta name="description" content="给自己五分钟，看见鼠标走过的地方。实时热力、路径回放，以及只留在浏览器里的注意力地图。">
+  <title>注意力地图 · Attention Atlas</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./engine.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <main id="map" aria-label="全屏鼠标热力图画布">
+    <canvas id="heat" aria-label="鼠标停留热力图"></canvas>
+    <canvas id="trail" aria-label="鼠标移动路径"></canvas>
+    <div id="minuteLegend" class="minute-legend" data-ui hidden aria-label="路径时间与点击标记图例"></div>
+    <div class="map-grid" aria-hidden="true"></div>
+    <div class="map-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div id="pointer" aria-hidden="true"><span></span></div>
+    <span class="axis axis-left" aria-hidden="true">Y / ATTENTION</span>
+    <span class="axis axis-bottom" aria-hidden="true">X / EXPLORATION</span>
+    <span id="coordinates" class="coordinates" aria-hidden="true">X — &nbsp; Y —</span>
+    <header class="header" data-ui>
+      <a class="brand" href="./" aria-label="注意力地图首页"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><circle cx="16" cy="16" r="10"/><circle cx="16" cy="16" r="3"/><path d="M16 1v6m0 18v6M1 16h6m18 0h6"/></svg><span>注意力地图<small>ATTENTION ATLAS</small></span><span class="version">01</span></a>
+      <div id="status" class="status"><span class="status-dot"></span><span id="statusText">一段属于你的五分钟</span></div>
+      <div class="header-actions"><span id="today" class="date"></span><button class="icon-button" id="helpButton" aria-label="使用说明" title="使用说明"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 2-2.5 2-2.5 4m0 3v.1"/></svg></button><button class="icon-button" id="fullscreenButton" aria-label="进入全屏" title="全屏 · F"><svg viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button></div>
+    </header>
+
+    <section class="intro" id="intro">
+      <p class="eyebrow"><span></span> A LITTLE EXPERIMENT IN ATTENTION</p>
+      <h1>你把注意力，<br>留在了<span>哪里。</span></h1>
+      <p class="intro-description">鼠标经过的地方，会留下温度。<br>给自己五分钟，看见一张只属于你的地图。</p>
+      <button class="text-button" id="demoButton" data-ui>先看一个示例 <span>↗</span></button>
+      <div class="intro-footnote"><span class="tiny-cross">+</span> 每一次游走，都有迹可循</div>
+    </section>
+
+    <aside class="session-panel" id="sessionPanel" data-ui aria-label="记录控制">
+      <div class="panel-heading"><span id="sessionLabel">一次小小的探索</span><span class="panel-index">SESSION / 001</span></div>
+      <div class="timer-wrap">
+        <svg class="timer-ring" viewBox="0 0 180 180" aria-hidden="true"><circle class="ring-track" cx="90" cy="90" r="78"/><circle id="progressRing" class="ring-progress" cx="90" cy="90" r="78" pathLength="100"/></svg>
+        <div class="timer"><span id="timerText">05:00</span><small id="timerCaption">留给自己的时间</small></div>
+      </div>
+      <p id="panelDescription" class="panel-description">随意移动，或者停留片刻。<br>让好奇心，带你走一走。</p>
+      <button class="primary-button" id="startButton"><svg id="startIcon" viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 9 6-9 6Z"/></svg><span id="startText">开始探索</span><span class="shortcut">SPACE</span></button>
+      <div class="session-secondary"><button id="saveButton" class="text-button" disabled>保存地图 <svg viewBox="0 0 18 18"><path d="M9 2v9m-3-3 3 3 3-3M3 11v4h12v-4"/></svg></button><button id="resetButton" class="text-button" disabled>重新开始 <svg viewBox="0 0 18 18"><path d="M3 7a6 6 0 1 1 0 4M3 3v4h4"/></svg></button></div>
+      <div class="local-note"><svg viewBox="0 0 16 16"><path d="M4 7V5a4 4 0 0 1 8 0v2M3 7h10v7H3Z"/></svg> 数据只保存在你的浏览器</div>
+    </aside>
+
+    <div class="live-note" id="liveNote"><span class="live-dot"></span><span id="liveMessage">慢一点也没关系，停留也是一种轨迹。</span></div>
+    <div class="replay-bar" id="replayBar" data-ui hidden><button class="icon-button" id="replayButton" aria-label="播放轨迹"><svg viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z"/></svg></button><span id="replayTime">00:00</span><input id="replaySlider" type="range" min="0" max="300000" step="100" value="0" aria-label="回看轨迹时间"><span id="replayTotal">05:00</span><button id="returnLiveButton" class="text-button">完整地图 ↗</button></div>
+
+    <footer class="footer" data-ui>
+      <div class="stats"><div class="stat"><span class="stat-label">游走距离 <svg viewBox="0 0 14 14"><path d="M2 10 5 4l4 6 3-6"/></svg></span><strong id="distance">0 <small>px</small></strong></div><div class="stat"><span class="stat-label">探索面积</span><strong id="coverage">0<small>%</small></strong></div><div class="stat"><span class="stat-label">最长停留</span><strong id="dwell">0.0 <small>s</small></strong></div><button class="history-link" id="historyButton"><span class="history-mark">◷</span><span>今日记录<small id="historyCount">0 次探索</small></span><span>↗</span></button></div>
+      <div class="view-options"><button id="pathToggle" class="toggle" role="switch" aria-checked="true"><span class="switch"><i></i></span>分钟路径</button><button id="heatToggle" class="toggle" role="switch" aria-checked="true"><span class="switch"><i></i></span>热力底图</button><button id="clickToggle" class="toggle" role="switch" aria-checked="true"><span class="switch"><i></i></span>点击标记</button><button class="palette-button" id="paletteButton" title="切换热力配色"><span id="paletteName">余温</span><span class="heat-scale" id="heatScale"></span></button><div class="legend"><span>经过</span><span>停留</span></div></div>
+    </footer>
+    <div class="bottom-note" data-ui><span>鼠标轨迹 ≠ 视线 · 仅记录当前页面</span><span>MOVE. PAUSE. NOTICE.</span><span id="storageStatus">本地记录 · 无需登录</span></div>
+  </main>
+
+  <dialog id="helpDialog" aria-labelledby="helpTitle"><button class="dialog-close icon-button" data-close="helpDialog" aria-label="关闭说明">×</button><p class="eyebrow">HOW IT WORKS</p><h2 id="helpTitle">让注意力，留下形状。</h2><p>点击「开始探索」，在页面里随意移动鼠标。颜色会随着停留时间逐渐变暖；5 分钟后，记录自动结束。</p><div class="help-steps"><div><b>01</b><span>自由游走<small>经过留下痕迹，停留积累热度。</small></span></div><div><b>02</b><span>回看五分钟<small>拖动时间轴，或播放自己的移动路径。</small></span></div><div><b>03</b><span>留下一张地图<small>导出 PNG 图片，或从今日记录里重新打开。</small></span></div></div><p class="help-note">这是一张鼠标行为地图，不能代表真实视线。网页只能记录当前页面；离开标签页会暂停。记录保存在当前浏览器，清除浏览器数据后会消失。</p><div class="keyboard-hints"><span><kbd>Space</kbd> 开始 / 暂停</span><span><kbd>F</kbd> 全屏</span><span><kbd>Esc</kbd> 关闭弹窗</span></div></dialog>
+  <dialog id="historyDialog" aria-labelledby="historyTitle"><button class="dialog-close icon-button" data-close="historyDialog" aria-label="关闭记录">×</button><p class="eyebrow" id="historyDate">YOUR LITTLE JOURNEYS</p><h2 id="historyTitle">今天，你走过的地方。</h2><p class="history-description">每段探索，都是一个小小的切片。</p><div id="historyList"></div><p class="help-note">最多保存最近 12 次探索。记录不会上传，也不会跨浏览器同步。</p></dialog>
+  <dialog id="resetDialog" aria-labelledby="resetTitle"><p class="eyebrow">A FRESH START</p><h2 id="resetTitle">开始一张新的地图？</h2><p>当前轨迹会留在今日记录中，可以随时回来继续看。</p><div class="dialog-actions"><button class="secondary-button" data-close="resetDialog">再看一会儿</button><button class="primary-button" id="confirmResetButton">开始新的探索 ↗</button></div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

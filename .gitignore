@@ -1,0 +1,10 @@
+.local/
+.openai/
+node_modules/
+注意力地图记录/
+*.log
+*.pdb
+.DS_Store
+Thumbs.db
+.env
+.env.*
